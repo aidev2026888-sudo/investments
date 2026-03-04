@@ -213,6 +213,10 @@ def print_silver_report(
         for f in shfe_premium_signal[1]:
             print(f"      - {f}")
         print(f"{sep}")
+    else:
+        print(f"\n  [SHFE PREMIUM] Chinese Industrial Demand Proxy:")
+        print(f"    [WARN] SHFE silver data currently unavailable (API blocked/rate-limited)")
+        print(f"{sep}")
 
     # --- Price Percentile ---
     print(f"\n  [PERCENTILE] {years_back}-Year Price Distribution:")
@@ -363,6 +367,8 @@ def save_silver_report_md(
         lines.append(f"| Miner Avg P/B | {miner_pb:.2f} ({safety_zone}) |")
     if shfe_premium_data is not None:
         lines.append(f"| SHFE Premium | {shfe_premium_data['premium_pct']:+.1f}% |")
+    else:
+        lines.append(f"| SHFE Premium | Unavailable |")
     lines.append(f"| Price Percentile ({years_back}yr) | {price_percentile:.1f}% |")
     lines.append(f"| **Signal** | **{signal_label}** (Score: {signal_score:+d}) |")
     lines.append("")
@@ -403,8 +409,8 @@ def save_silver_report_md(
         lines.append("")
 
     # SHFE Silver Premium
+    lines.append("## SHFE Premium (China Industrial Demand)")
     if shfe_premium_data is not None and shfe_premium_signal is not None:
-        lines.append("## SHFE Premium (China Industrial Demand)")
         premium_pct = shfe_premium_data['premium_pct']
         signal_label_shfe = shfe_premium_signal[0]
         
@@ -415,6 +421,9 @@ def save_silver_report_md(
         
         for f in shfe_premium_signal[1]:
             lines.append(f"  - {f}")
+        lines.append("")
+    else:
+        lines.append(f"- ⚠️ **Data Unavailable**: Could not fetch real-time SHFE silver prices from Chinese APIs (likely rate-limited or IP blocked).")
         lines.append("")
 
     # Percentile
