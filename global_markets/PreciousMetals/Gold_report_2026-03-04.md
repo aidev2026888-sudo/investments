@@ -4,10 +4,10 @@
 ## Summary
 | Metric | Value |
 |--------|-------|
-| Gold Spot | $5,181.50/oz |
+| Gold Spot | $5,185.00/oz |
 | Real Yield (TIPS) | +1.76% |
 | Miner Avg P/B | 2.98 (ELEVATED) |
-| Gold/GDX Ratio | 49.2 |
+| Gold/GDX Ratio | 49.3 |
 | Price Percentile (10yr) | 99.8% |
 | **Signal** | **<< SELL >>** (Score: -3) |
 

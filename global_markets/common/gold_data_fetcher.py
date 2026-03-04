@@ -477,34 +477,31 @@ def fetch_shfe_silver_premium(comex_price_usd_oz: float) -> Optional[dict]:
 
         shfe_price_cny_kg = None
 
-        # 2. Try Eastmoney API for active silver contracts
+        # 2. Fetch from TradingView Scanner API (more reliable than Chinese feeds for external APIs)
         import requests
-        headers = {"User-Agent": "Mozilla/5.0"}
-        # Try active SHFE contracts and SGE Spot
-        urls = [
-            "http://push2.eastmoney.com/api/qt/stock/get?secid=113.ag2606",
-            "http://push2.eastmoney.com/api/qt/stock/get?secid=113.ag2608",
-            "http://push2.eastmoney.com/api/qt/stock/get?secid=113.ag2610",
-            "http://push2.eastmoney.com/api/qt/stock/get?secid=113.ag2612",
-            "http://push2.eastmoney.com/api/qt/stock/get?secid=111.AGTD",
-            "http://push2.eastmoney.com/api/qt/stock/get?secid=111.agtd"
-        ]
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Content-Type": "application/json"
+        }
+        url = "https://scanner.tradingview.com/global/scan"
+        payload = {
+            "symbols": {"tickers": ["SHFE:AG1!"]},
+            "columns": ["close"]
+        }
         
-        for url in urls:
-            try:
-                res = requests.get(url, headers=headers, timeout=3)
-                if res.status_code == 200:
-                    data = res.json()
-                    if "data" in data and data["data"]:
-                        price = data["data"].get("f43")
-                        if price and price > 0:
-                            shfe_price_cny_kg = price
-                            break
-            except Exception:
-                continue
+        try:
+            res = requests.post(url, json=payload, headers=headers, timeout=5)
+            if res.status_code == 200:
+                data = res.json()
+                if data.get("data") and len(data["data"]) > 0:
+                    price = data["data"][0].get("d", [None])[0]
+                    if price and price > 0:
+                        shfe_price_cny_kg = price
+        except Exception as e:
+            print(f"  [WARN] TradingView fetch error: {e}")
 
         if not shfe_price_cny_kg:
-            print("  [WARN] Could not fetch SHFE silver price (API blocked/rate limited).")
+            print("  [WARN] Could not fetch SHFE silver price.")
             return None
 
         # 3. Compute premium
