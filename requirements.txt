@@ -1,0 +1,11 @@
+akshare
+pandas
+scipy
+matplotlib
+mini-racer
+yfinance
+numpy
+fredapi
+wbgapi
+requests
+python-dotenv
