@@ -34,6 +34,7 @@ from common.gold_data_fetcher import (
     fetch_gold_miner_fundamentals,
     fetch_silver_miner_fundamentals,
     fetch_gold_gdx_ratio,
+    fetch_shfe_silver_premium,
 )
 from common.gold_metrics import (
     compute_real_yield_signal,
@@ -42,6 +43,7 @@ from common.gold_metrics import (
     compute_gold_percentile_values,
     compute_gsr_signal,
     compute_inventory_signal,
+    compute_shfe_premium_signal,
 )
 from common.gold_signals import compute_gold_composite_signal, compute_silver_composite_signal
 from common.gold_charting import generate_gold_chart, generate_silver_chart
@@ -159,6 +161,14 @@ def analyze_silver(gold_price, gold_df, real_yield, output_dir):
     price_percentile = compute_gold_percentile(silver_df["price"], silver_spot)
     percentile_values = compute_gold_percentile_values(silver_df["price"])
 
+    # SHFE Silver Premium
+    shfe_premium_data = fetch_shfe_silver_premium(comex_price_usd_oz=silver_spot)
+    shfe_premium_signal = None
+    shfe_premium_pct = None
+    if shfe_premium_data:
+        shfe_premium_pct = shfe_premium_data["premium_pct"]
+        shfe_premium_signal = compute_shfe_premium_signal(shfe_premium_pct)
+
     # Composite signal (uses miner_pb instead of aisc_premium_pct)
     signal_label, signal_factors, signal_score, confidence = (
         compute_silver_composite_signal(
@@ -166,6 +176,7 @@ def analyze_silver(gold_price, gold_df, real_yield, output_dir):
             gsr=gsr,
             miner_pb=miner_pb,
             price_percentile=price_percentile,
+            shfe_premium_pct=shfe_premium_pct,
         )
     )
 
@@ -182,6 +193,8 @@ def analyze_silver(gold_price, gold_df, real_yield, output_dir):
         miner_data=miner_data,
         inventory_data=inventory_data,
         inventory_signal=inventory_signal,
+        shfe_premium_data=shfe_premium_data,
+        shfe_premium_signal=shfe_premium_signal,
         price_percentile=price_percentile,
         percentile_values=percentile_values,
         signal_label=signal_label,
@@ -197,7 +210,9 @@ def analyze_silver(gold_price, gold_df, real_yield, output_dir):
         gsr_signal=gsr_signal, real_yield=real_yield, miner_pb=miner_pb,
         safety_zone=safety_zone, safety_interp=safety_interp,
         miner_data=miner_data, inventory_data=inventory_data,
-        inventory_signal=inventory_signal, price_percentile=price_percentile,
+        inventory_signal=inventory_signal, 
+        shfe_premium_data=shfe_premium_data, shfe_premium_signal=shfe_premium_signal,
+        price_percentile=price_percentile,
         percentile_values=percentile_values, signal_label=signal_label,
         signal_factors=signal_factors, signal_score=signal_score,
         confidence=confidence, years_back=YEARS_BACK, output_dir=output_dir,

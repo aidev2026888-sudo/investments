@@ -457,3 +457,72 @@ def fetch_real_yield_series(years_back: int = 10) -> Optional[pd.DataFrame]:
 
     print(f"  [WARN] Real yield history not available (FRED_API_KEY not set)")
     return None
+
+# ==========================================
+# SHFE Silver Premium (China Demand Indicator)
+# ==========================================
+
+def fetch_shfe_silver_premium(comex_price_usd_oz: float) -> Optional[dict]:
+    """Fetch SHFE silver price and compute premium over COMEX.
+
+    Returns dict with SHFE price, CNY rate, and premium %.
+    """
+    print(f"Fetching SHFE Silver premium...")
+    try:
+        # 1. USD/CNY exchange rate
+        ticker = yf.Ticker("CNY=X")
+        usd_cny = ticker.info.get("regularMarketPrice") or ticker.fast_info.get("last_price")
+        if not usd_cny:
+            usd_cny = 7.20  # fallback approximation
+
+        shfe_price_cny_kg = None
+
+        # 2. Try Eastmoney API for active silver contracts
+        import requests
+        headers = {"User-Agent": "Mozilla/5.0"}
+        # Try active SHFE contracts and SGE Spot
+        urls = [
+            "http://push2.eastmoney.com/api/qt/stock/get?secid=113.ag2606",
+            "http://push2.eastmoney.com/api/qt/stock/get?secid=113.ag2608",
+            "http://push2.eastmoney.com/api/qt/stock/get?secid=113.ag2610",
+            "http://push2.eastmoney.com/api/qt/stock/get?secid=113.ag2612",
+            "http://push2.eastmoney.com/api/qt/stock/get?secid=111.AGTD",
+            "http://push2.eastmoney.com/api/qt/stock/get?secid=111.agtd"
+        ]
+        
+        for url in urls:
+            try:
+                res = requests.get(url, headers=headers, timeout=3)
+                if res.status_code == 200:
+                    data = res.json()
+                    if "data" in data and data["data"]:
+                        price = data["data"].get("f43")
+                        if price and price > 0:
+                            shfe_price_cny_kg = price
+                            break
+            except Exception:
+                continue
+
+        if not shfe_price_cny_kg:
+            print("  [WARN] Could not fetch SHFE silver price (API blocked/rate limited).")
+            return None
+
+        # 3. Compute premium
+        # 1 kg = 32.1507 troy ounces
+        shfe_usd_oz = shfe_price_cny_kg / usd_cny / 32.1507
+        premium_pct = (shfe_usd_oz / comex_price_usd_oz - 1) * 100
+
+        print(f"  SHFE Silver: {shfe_price_cny_kg:,.0f} CNY/kg (${shfe_usd_oz:,.2f}/oz)")
+        print(f"  Premium vs COMEX (${comex_price_usd_oz:,.2f}/oz): +{premium_pct:.1f}%")
+
+        return {
+            "shfe_price_cny_kg": shfe_price_cny_kg,
+            "shfe_usd_oz": shfe_usd_oz,
+            "usd_cny": usd_cny,
+            "comex_usd_oz": comex_price_usd_oz,
+            "premium_pct": premium_pct
+        }
+
+    except Exception as e:
+        print(f"  [FAIL] SHFE silver premium fetch failed: {e}")
+        return None

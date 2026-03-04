@@ -122,6 +122,8 @@ def print_silver_report(
     miner_data: Optional[dict],
     inventory_data: Optional[dict],
     inventory_signal: Optional[Tuple[str, str]],
+    shfe_premium_data: Optional[dict],
+    shfe_premium_signal: Optional[Tuple[str, list]],
     price_percentile: float,
     percentile_values: Dict[int, float],
     signal_label: str,
@@ -195,6 +197,21 @@ def print_silver_report(
                     print(f"    [i] Adequate inventory coverage")
                 else:
                     print(f"    [OK] Comfortable inventory coverage")
+        print(f"{sep}")
+
+    # --- SHFE Silver Premium ---
+    if shfe_premium_data is not None and shfe_premium_signal is not None:
+        print(f"\n  [SHFE PREMIUM] Chinese Industrial Demand Proxy:")
+        premium_pct = shfe_premium_data['premium_pct']
+        signal_label_shfe = shfe_premium_signal[0]
+        
+        print(f"    SHFE Silver:  {shfe_premium_data['shfe_price_cny_kg']:,.0f} CNY/kg (${shfe_premium_data['shfe_usd_oz']:.2f}/oz)")
+        print(f"    COMEX Spot:   ${shfe_premium_data['comex_usd_oz']:.2f}/oz")
+        print(f"    Premium:      {premium_pct:+.1f}%")
+        print(f"    Signal:       {signal_label_shfe}")
+        
+        for f in shfe_premium_signal[1]:
+            print(f"      - {f}")
         print(f"{sep}")
 
     # --- Price Percentile ---
@@ -317,6 +334,8 @@ def save_silver_report_md(
     miner_data: Optional[dict],
     inventory_data: Optional[dict],
     inventory_signal: Optional[Tuple[str, str]],
+    shfe_premium_data: Optional[dict],
+    shfe_premium_signal: Optional[Tuple[str, list]],
     price_percentile: float,
     percentile_values: Dict[int, float],
     signal_label: str,
@@ -342,6 +361,8 @@ def save_silver_report_md(
     lines.append(f"| Gold/Silver Ratio | {gsr:.1f} |")
     if miner_pb is not None:
         lines.append(f"| Miner Avg P/B | {miner_pb:.2f} ({safety_zone}) |")
+    if shfe_premium_data is not None:
+        lines.append(f"| SHFE Premium | {shfe_premium_data['premium_pct']:+.1f}% |")
     lines.append(f"| Price Percentile ({years_back}yr) | {price_percentile:.1f}% |")
     lines.append(f"| **Signal** | **{signal_label}** (Score: {signal_score:+d}) |")
     lines.append("")
@@ -379,6 +400,21 @@ def save_silver_report_md(
                 lines.append(f"\n> ⚠️ CRITICAL: Inventory covers <20% of open interest — extreme squeeze risk")
             elif coverage_zone == "TIGHT":
                 lines.append(f"\n> ⚠️ TIGHT: Elevated squeeze risk — monitor closely")
+        lines.append("")
+
+    # SHFE Silver Premium
+    if shfe_premium_data is not None and shfe_premium_signal is not None:
+        lines.append("## SHFE Premium (China Industrial Demand)")
+        premium_pct = shfe_premium_data['premium_pct']
+        signal_label_shfe = shfe_premium_signal[0]
+        
+        lines.append(f"- **SHFE Silver**: {shfe_premium_data['shfe_price_cny_kg']:,.0f} CNY/kg (${shfe_premium_data['shfe_usd_oz']:.2f}/oz)")
+        lines.append(f"- **COMEX Spot**: ${shfe_premium_data['comex_usd_oz']:.2f}/oz")
+        lines.append(f"- **Premium vs COMEX**: {premium_pct:+.1f}%")
+        lines.append(f"- **Signal**: {signal_label_shfe}")
+        
+        for f in shfe_premium_signal[1]:
+            lines.append(f"  - {f}")
         lines.append("")
 
     # Percentile

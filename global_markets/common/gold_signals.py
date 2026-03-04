@@ -124,6 +124,7 @@ def compute_silver_composite_signal(
     gsr: Optional[float] = None,
     miner_pb: Optional[float] = None,
     price_percentile: Optional[float] = None,
+    shfe_premium_pct: Optional[float] = None,
 ) -> Tuple[str, List[str], int, str]:
     """Compute a composite valuation signal for silver.
 
@@ -145,11 +146,15 @@ def compute_silver_composite_signal(
       Factor 4 -- Price Percentile (10-year):
         > 80th -> -1 | 40-80 -> 0 | < 40th -> +1
 
+      Factor 5 -- SHFE Silver Premium (Chinese Industrial Demand):
+        > 10%  -> +2 | 5-10% -> +1 | 0-5% -> 0 | < 0% -> -1
+
     Args:
         real_yield:       US 10Y TIPS yield as decimal.
         gsr:              Gold/Silver Ratio.
         miner_pb:         Average silver miner P/B ratio (from AG + PAAS).
         price_percentile: Price percentile (0-100).
+        shfe_premium_pct: SHFE premium over COMEX spot (%).
 
     Returns:
         Tuple of (signal_label, factor_details, total_score, confidence).
@@ -237,6 +242,7 @@ def compute_silver_composite_signal(
         + (1 if gsr is not None else 0)
         + (1 if miner_pb is not None else 0)
         + (1 if price_percentile is not None else 0)
+        + (1 if shfe_premium_pct is not None else 0)
     )
     confidence = f"{abs(score)}/{total_factors + 1}"
 

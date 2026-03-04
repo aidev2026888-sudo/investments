@@ -298,3 +298,37 @@ def compute_inventory_signal(
         interp = f"Inventory from {source}: {value}"
 
     return (label, interp, coverage_ratio, coverage_zone)
+
+
+# ==========================================
+# SHFE Silver Premium Signal
+# ==========================================
+
+def compute_shfe_premium_signal(premium_pct: float) -> Tuple[str, list]:
+    """Compute directional signal from SHFE silver premium over COMEX.
+    
+    Returns:
+        (signal_label, list_of_factors)
+        
+    Signal Logic:
+        > 10%:   Strong signal - Acute physical shortage & intense Chinese industrial demand
+        > 5%:    Positive signal - Solid physical demand supporting prices
+        < 0%:    Negative signal - Weak industrial demand relative to global market
+        0-5%:    Neutral
+    """
+    factors = []
+    
+    if premium_pct > 10.0:
+        signal = "Strong Bullish"
+        factors.append(f"SHFE Premium {premium_pct:+.1f}% (>10%): Acute physical silver shortage in China")
+    elif premium_pct > 5.0:
+        signal = "Bullish"
+        factors.append(f"SHFE Premium {premium_pct:+.1f}% (>5%): Strong Chinese industrial demand")
+    elif premium_pct < 0.0:
+        signal = "Bearish"
+        factors.append(f"SHFE Premium {premium_pct:+.1f}% (<0%): Weak regional physical demand")
+    else:
+        signal = "Neutral"
+        factors.append(f"SHFE Premium {premium_pct:+.1f}% (0-5%): Normal baseline physical demand")
+        
+    return signal, factors

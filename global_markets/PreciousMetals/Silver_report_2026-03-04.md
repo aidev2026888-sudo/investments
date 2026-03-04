@@ -4,8 +4,8 @@
 ## Summary
 | Metric | Value |
 |--------|-------|
-| Silver Spot | $84.93/oz |
-| Gold Spot | $5,183.20/oz |
+| Silver Spot | $84.82/oz |
+| Gold Spot | $5,177.90/oz |
 | Gold/Silver Ratio | 61.0 |
 | Miner Avg P/B | 4.38 (NO SAFETY MARGIN) |
 | Price Percentile (10yr) | 99.3% |
@@ -27,9 +27,9 @@ Silver miners P/B=4.38, OpMargin=41.9% -- extreme profitability; price far above
 ## COMEX / Inventory
 - Source: SLV ETF (iShares Silver Trust)
 - Status: **COVERAGE COMFORTABLE**
-- SLV holds $51.5B in silver assets | Coverage ratio: 96.6% (COMFORTABLE) — 606,133,510 oz inventory vs 627,270,000 oz open interest
+- SLV holds $51.5B in silver assets | Coverage ratio: 96.8% (COMFORTABLE) — 606,919,540 oz inventory vs 627,270,000 oz open interest
 
-**Squeeze Risk — Coverage Ratio: 96.6% (COMFORTABLE)**
+**Squeeze Risk — Coverage Ratio: 96.8% (COMFORTABLE)**
 
 ## Price Percentile (10yr)
 | Percentile | Price |

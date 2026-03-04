@@ -130,6 +130,25 @@ The **coverage ratio** = estimated inventory ÷ open interest. When inventory ca
 
 ---
 
+### 7. SHFE Silver Premium (China Demand Proxy)
+
+| Zone | Premium | Score | Meaning |
+|------|---------|-------|---------|
+| STRONG BULLISH | > 10% | +2 | Acute physical silver shortage in China |
+| BULLISH | 5–10% | +1 | Strong Chinese industrial demand |
+| NEUTRAL | 0–5% | 0 | Normal baseline physical demand |
+| BEARISH | < 0% | −1 | Weak regional physical demand |
+
+**What it measures**: The premium of the active silver futures contract on the Shanghai Futures Exchange (SHFE) or SGE Ag(T+D) over the London/COMEX spot price. Because China is a massive driver of industrial silver demand (especially for solar photovoltaics), a sustained, structural premium in Shanghai indicates tight local supply and robust industrial off-take that is front-running western financial markets.
+
+**Data sources**: Eastmoney (SHFE `ag2606`, SGE `Ag(T+D)`) / Sina Finance. USD/CNY rate from yfinance `CNY=X`.
+
+**Limitation**: Real-time programmatic fetching of Chinese exchange data without a paid API key is highly susceptible to IP blocking and rate limiting. The script attempts to scrape the latest prices using rotating fallbacks; if blocked, the report treats this factor as 'Unavailable' without breaking the pipeline.
+
+**Reference**: [Bloomberg — China's Premium on Gold and Silver](https://www.bloomberg.com/news/articles/2024-05-24/silver-surges-in-china-as-retail-investors-dive-into-haven-asset)
+
+---
+
 ## Composite Signal Model
 
 ### Gold (3-Factor)
@@ -148,7 +167,7 @@ Factors: Real Yield + Miner P/B + Price Percentile
 
 Same score → signal mapping as gold.
 
-Factors: Real Yield + GSR + Miner P/B + Price Percentile
+Factors: Real Yield + GSR + Miner P/B + Price Percentile + SHFE Premium
 
 > **Note**: The COMEX coverage ratio is deliberately excluded from composite scoring. It is a tactical/monitoring metric displayed in the report for situational awareness.
 
