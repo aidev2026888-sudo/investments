@@ -35,3 +35,16 @@
 | PE Percentile 99% (Very High) |  |
 | CAPE Deviation +26.6% (Overvalued) |  |
 
+## VIX Fear Gauge
+| Metric | Value |
+|--------|-------|
+| Current VIX | 23.6 |
+| Zone | **NORMAL** |
+| Percentile (2yr) | 92th |
+| 20d High | 23.6 |
+| Surge | +31% |
+| Retreat from peak | 0% |
+| Spike-Retreat | No |
+
+VIX 23.6 -- within normal range.
+
