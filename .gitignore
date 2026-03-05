@@ -21,3 +21,11 @@ Thumbs.db
 
 # Charts (generated)
 *.png
+
+# Node.js
+node_modules/
+.next/
+out/
+
+# Reports (generated daily)
+reports/
