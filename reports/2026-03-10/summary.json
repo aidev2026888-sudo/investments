@@ -1,0 +1,87 @@
+{
+  "date": "2026-03-10",
+  "assets": {
+    "SP500": {
+      "signal": "<<< STRONG SELL >>>",
+      "score": -4,
+      "status": "ok",
+      "report_file": "SandP_500_report_2026-03-10.md",
+      "charts": [
+        "SandP_500_pe_valuation.png"
+      ]
+    },
+    "DAX": {
+      "signal": "<< SELL >>",
+      "score": -3,
+      "status": "ok",
+      "report_file": "DAX_report_2026-03-10.md",
+      "charts": [
+        "DAX_pe_valuation.png"
+      ]
+    },
+    "CAC40": {
+      "signal": "<< SELL >>",
+      "score": -2,
+      "status": "ok",
+      "report_file": "CAC_40_report_2026-03-10.md",
+      "charts": [
+        "CAC_40_pe_valuation.png"
+      ]
+    },
+    "FTSE100": {
+      "signal": "<< SELL >>",
+      "score": -3,
+      "status": "ok",
+      "report_file": "FTSE_100_report_2026-03-10.md",
+      "charts": [
+        "FTSE_100_pe_valuation.png"
+      ]
+    },
+    "SMI": {
+      "signal": "<< SELL >>",
+      "score": -3,
+      "status": "ok",
+      "report_file": "SMI_(Swiss_Market_Index)_report_2026-03-10.md",
+      "charts": [
+        "SMI_(Swiss_Market_Index)_pe_valuation.png"
+      ]
+    },
+    "PreciousMetals": {
+      "signal": "<< SELL >>",
+      "score": -3,
+      "status": "ok",
+      "report_file": "Gold_report_2026-03-10.md",
+      "charts": [
+        "Gold_valuation.png",
+        "Silver_valuation.png"
+      ]
+    },
+    "FX": {
+      "signal": "N/A",
+      "score": 0,
+      "status": "ok",
+      "report_file": "FX_report_2026-03-10.md",
+      "charts": [
+        "AUD_valuation_dashboard.png",
+        "CAD_valuation_dashboard.png",
+        "CHF_valuation_dashboard.png",
+        "CNY_valuation_dashboard.png",
+        "EUR_valuation_dashboard.png",
+        "fx_valuation_heatmap.png",
+        "GBP_valuation_dashboard.png",
+        "JPY_valuation_dashboard.png",
+        "SGD_valuation_dashboard.png",
+        "USD_valuation_dashboard.png"
+      ]
+    },
+    "CIS300": {
+      "signal": "<< 中性/持有 >>",
+      "score": -1,
+      "status": "ok",
+      "report_file": "CSI300_report_2026-03-10.md",
+      "charts": [
+        "pe_valuation_trend.png"
+      ]
+    }
+  }
+}

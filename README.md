@@ -12,8 +12,6 @@
 
 | Feature | Description |
 |---------|-------------|
-| **Cinematic Layout** | Apple Pro-style mobile-first layout with `100vh` sticky stacking sections |
-| **Dark Design System** | True black `#000000` backgrounds, glassmorphism, and gradient text accents |
 | **GSAP Animations** | Intersecting scroll-linked reveals, parallax charts, and glowing signal badges |
 | **Live signals** | Buy / Sell / Hold with structural valuation scores per asset |
 | **Interactive charts** | Click-to-expand cinematic lightbox overlay |
