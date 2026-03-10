@@ -27,11 +27,28 @@ export default async function AssetDetailPage({ params }: PageProps) {
     const assetData = summary?.assets?.[asset.reportDir];
 
     // Load serializable data only
+    // OVERRIDE: Since 'summary.json' only maps a single report_file ("Gold_report...") 
+    // for the entire 'PreciousMetals' block, we must explicitly intercept the "silver" slug.
+    let reportFilename = assetData?.report_file;
+    if (slug === "silver") {
+        reportFilename = "Silver_report";
+    } else if (slug === "gold") {
+        reportFilename = "Gold_report";
+    }
+
     const reportContent = latestDate
-        ? loadReport(latestDate, asset.reportDir, asset.shortName)
+        ? loadReport(latestDate, asset.reportDir, reportFilename || asset.shortName)
         : null;
     const readmeContent = loadReadme(asset.readmeDir);
-    const charts = latestDate ? getChartPaths(latestDate, asset.reportDir) : [];
+    let charts = latestDate ? getChartPaths(latestDate, asset.reportDir) : [];
+    
+    // OVERRIDE: Filter charts for precious metals since they share a directory
+    if (slug === "silver") {
+        charts = charts.filter(c => c.toLowerCase().includes("silver"));
+    } else if (slug === "gold") {
+        charts = charts.filter(c => c.toLowerCase().includes("gold"));
+    }
+
     const history = getSignalHistory(asset.reportDir);
 
     return (

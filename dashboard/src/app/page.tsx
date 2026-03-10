@@ -1,228 +1,195 @@
 import Link from "next/link";
-import {
-  ASSET_CONFIGS,
-  CATEGORIES,
-  getSignalColor,
-  getSignalBgColor,
-} from "@/lib/types";
+import { ASSET_GROUPS, ASSET_CONFIGS } from "@/lib/types";
 import { getReportDates, loadSummary } from "@/lib/data";
+import ScrollAnimations from "@/components/ScrollAnimations";
+import { AssetIcon } from "@/components/AssetIcon";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Bento grid layout sizes per asset — featured assets get larger cards.
- */
-const CARD_SIZES: Record<string, "hero" | "wide" | "tall" | "normal"> = {
-  sp500: "hero",       // 2×2 — the most important asset
-  gold: "wide",        // 2×1 — precious metals hero
-  fx: "wide",          // 2×1 — multi-currency
-  dax: "tall",         // 1×2
-  csi300: "tall",      // 1×2
-  cac40: "normal",
-  ftse100: "normal",
-  smi: "normal",
-  silver: "normal",
-};
+export default async function DashboardPage() {
+    const dates = getReportDates();
+    const latestDate = dates[0] || null;
+    let summary = null;
+    if (latestDate) {
+        summary = loadSummary(latestDate);
+    }
 
-/**
- * Per-asset gradient accents for visual variety
- */
-const CARD_GRADIENTS: Record<string, string> = {
-  sp500: "linear-gradient(135deg, rgba(99,91,255,0.12), rgba(14,165,233,0.06))",
-  dax: "linear-gradient(135deg, rgba(14,165,233,0.10), rgba(99,91,255,0.05))",
-  cac40: "linear-gradient(135deg, rgba(169,96,238,0.10), rgba(99,91,255,0.05))",
-  ftse100: "linear-gradient(135deg, rgba(14,165,233,0.08), rgba(17,239,165,0.04))",
-  smi: "linear-gradient(135deg, rgba(128,233,255,0.08), rgba(99,91,255,0.04))",
-  csi300: "linear-gradient(135deg, rgba(244,63,94,0.08), rgba(169,96,238,0.05))",
-  gold: "linear-gradient(135deg, rgba(250,204,21,0.10), rgba(245,158,11,0.05))",
-  silver: "linear-gradient(135deg, rgba(148,163,184,0.10), rgba(128,233,255,0.05))",
-  fx: "linear-gradient(135deg, rgba(17,239,165,0.10), rgba(14,165,233,0.05))",
-};
+    const { assets = {} } = summary || {};
+    const totalAssets = ASSET_CONFIGS.length;
 
-export default function HomePage() {
-  const dates = getReportDates();
-  const latestDate = dates[0] || null;
-  const summary = latestDate ? loadSummary(latestDate) : null;
+    // Calculate aggregated metrics
+    let buyCount = 0;
+    let sellCount = 0;
+    let neutralCount = 0;
 
-  // Count signals
-  const buyCount = summary
-    ? Object.values(summary.assets).filter(
-      (a) => a.signal?.toLowerCase().includes("buy")
-    ).length
-    : 0;
-  const sellCount = summary
-    ? Object.values(summary.assets).filter(
-      (a) => a.signal?.toLowerCase().includes("sell")
-    ).length
-    : 0;
-  const totalAssets = ASSET_CONFIGS.length;
+    for (const config of ASSET_CONFIGS) {
+        const val = assets[config.reportDir]?.signal?.toLowerCase() || "";
+        if (val.includes("buy") || val.includes("买入")) buyCount++;
+        else if (val.includes("sell") || val.includes("卖出")) sellCount++;
+        else neutralCount++;
+    }
 
-  return (
-    <>
-      {/* ═══ Stripe-style Nav ═══ */}
-      <header className="header">
-        <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
-          <div className="header__title">
-            <span className="header__logo">GM</span>
-            Global Markets
-          </div>
-          <nav className="header__nav">
-            <a href="#equity" className="header__link">Equities</a>
-            <a href="#precious_metals" className="header__link">Metals</a>
-            <a href="#fx" className="header__link">FX</a>
-            <a href="#china" className="header__link">China</a>
-          </nav>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          {latestDate && <div className="header__date">{latestDate}</div>}
-          <a href="/asset/sp500" className="header__cta">View Signals →</a>
-        </div>
-      </header>
-
-      <main className="main">
-        {!summary ? (
-          <div className="empty">
-            <div className="empty__icon">—</div>
-            <div className="empty__text">
-              No reports yet. Run <code>python run_all.py</code> to generate
-              your first daily report.
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* ═══ Stripe-style Hero ═══ */}
-            <section className="hero">
-              <div className="hero__badge">Investment Intelligence Platform</div>
-              <h1 className="hero__title">
-                Global market<br />
-                valuation signals
-              </h1>
-              <p className="hero__sub">
-                Quantitative multi-factor analysis across equities, precious metals,
-                and currencies. Automated daily scoring powered by PE percentiles,
-                CAPE deviation, equity risk premiums, and macro indicators.
-              </p>
-              <div className="hero__metrics">
-                <div className="hero__metric">
-                  <span className="hero__metric-value">{totalAssets}</span>
-                  <span className="hero__metric-label">Assets monitored</span>
+    return (
+        <>
+            <ScrollAnimations />
+            
+            <nav className="nav">
+                <div className="nav__brand">
+                    <div className="nav__logo">GM</div>
+                    <span>Global Markets Monitor</span>
                 </div>
-                <div className="hero__metric-divider" />
-                <div className="hero__metric">
-                  <span className="hero__metric-value" style={{ color: "#11efa5" }}>{buyCount}</span>
-                  <span className="hero__metric-label">Buy signals</span>
+                <div className="nav__links">
+                    {ASSET_GROUPS.map(g => (
+                        <a key={g.key} href={`#${g.key}`} className="nav__link">{g.label}</a>
+                    ))}
+                    {latestDate && <span className="nav__date" style={{ marginLeft: 16 }}>{latestDate}</span>}
                 </div>
-                <div className="hero__metric-divider" />
-                <div className="hero__metric">
-                  <span className="hero__metric-value" style={{ color: "#f43f5e" }}>{sellCount}</span>
-                  <span className="hero__metric-label">Sell signals</span>
-                </div>
-                <div className="hero__metric-divider" />
-                <div className="hero__metric">
-                  <span className="hero__metric-value">5</span>
-                  <span className="hero__metric-label">Dimensions per asset</span>
-                </div>
-              </div>
-            </section>
+            </nav>
 
-            {CATEGORIES.map((cat) => {
-              const assets = ASSET_CONFIGS.filter(
-                (a) => a.category === cat.key
-              );
-              if (assets.length === 0) return null;
+            <main className="main">
+                {/* ---------- Hero Section (Cinematic Sticky) ---------- */}
+                <section className="hero" style={{ position: 'sticky', top: 0, zIndex: 1 }}>
+                    <div className="hero__overline">Quantitative Analysis</div>
+                    <h1 className="hero__title">Global Markets</h1>
+                    <p className="hero__subtitle">
+                        Multi-factor valuation signals powered by Python and data APIs.
+                        Monitoring global equities, precious metals, and foreign exchange daily.
+                    </p>
 
-              return (
-                <section key={cat.key} id={cat.key} className="category">
-                  <h2 className="category__title">{cat.label}</h2>
-                  <div className="bento-grid">
-                    {assets.map((asset) => {
-                      const data = summary.assets[asset.reportDir];
-                      const signal = data?.signal || "N/A";
-                      const score = data?.score || 0;
-                      const status = data?.status || "failed";
-                      const size = CARD_SIZES[asset.slug] || "normal";
-                      const gradient = CARD_GRADIENTS[asset.slug] || "";
-
-                      return (
-                        <Link
-                          key={asset.slug}
-                          href={`/asset/${asset.slug}`}
-                          className={`bento-card bento-card--${size}`}
-                          style={{
-                            textDecoration: "none",
-                            color: "inherit",
-                          }}
-                        >
-                          {/* Per-card gradient overlay */}
-                          <div
-                            className="bento-card__gradient"
-                            style={{ background: gradient }}
-                          />
-
-                          <div className="bento-card__content">
-                            <div className="bento-card__top">
-                              <div className="bento-card__identity">
-                                <span className="card__icon">{asset.icon}</span>
-                                <div>
-                                  <div className="bento-card__name">
-                                    {asset.name}
-                                  </div>
-                                  <div className="bento-card__score">
-                                    Score:{" "}
-                                    <strong>
-                                      {score >= 0 ? "+" : ""}
-                                      {score}
-                                    </strong>
-                                  </div>
-                                </div>
-                              </div>
-                              <span
-                                className="card__signal"
-                                style={{
-                                  color: getSignalColor(signal),
-                                  backgroundColor: getSignalBgColor(signal),
-                                }}
-                              >
-                                {signal.replace(/[<>]/g, "").trim()}
-                              </span>
-                            </div>
-
-                            {/* Chart — show larger in hero/wide/tall cards */}
-                            {data?.charts && data.charts.length > 0 && (
-                              <div className="bento-card__chart-wrap">
-                                <img
-                                  className="bento-card__chart"
-                                  src={`/api/chart/${latestDate}/${asset.reportDir}/${data.charts[0]}`}
-                                  alt={`${asset.name} chart`}
-                                  loading="lazy"
-                                />
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="bento-card__footer">
-                            <span>
-                              <span
-                                className="card__status-dot"
-                                style={{
-                                  backgroundColor:
-                                    status === "ok" ? "#11efa5" : "#f43f5e",
-                                }}
-                              />
-                              {status === "ok" ? "Live" : "No data"}
-                            </span>
-                            <span className="bento-card__arrow">→</span>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
+                    <div className="hero__metrics">
+                        <div className="hero__pill">
+                            <span>Assets Tracked</span>
+                            <span className="hero__pill-value">{totalAssets}</span>
+                        </div>
+                        <div className="hero__pill">
+                            <span style={{ color: "var(--accent-green)" }}>Buy Signals</span>
+                            <span className="hero__pill-value">{buyCount}</span>
+                        </div>
+                        <div className="hero__pill">
+                            <span style={{ color: "var(--accent-orange)" }}>Neutral</span>
+                            <span className="hero__pill-value">{neutralCount}</span>
+                        </div>
+                        <div className="hero__pill">
+                            <span style={{ color: "var(--accent-red)" }}>Sell Signals</span>
+                            <span className="hero__pill-value">{sellCount}</span>
+                        </div>
+                    </div>
                 </section>
-              );
-            })}
-          </>
-        )}
-      </main>
-    </>
-  );
+
+                {/* ---------- Overview Section (Stacks over Hero) ---------- */}
+                <div style={{ position: 'relative', zIndex: 10, background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+                    
+                    {ASSET_GROUPS.map((group) => {
+                        const groupAssets = ASSET_CONFIGS.filter((a) => a.group === group.key);
+                        if (groupAssets.length === 0) return null;
+
+                        return (
+                            <section id={group.key} key={group.key} className="section">
+                                <div className="section__label">{group.label}</div>
+                                <h2 className="section__title">
+                                    {group.key === "equity" ? "Global Equities" :
+                                     group.key === "china"  ? "China A-Shares" :
+                                     group.key === "metals" ? "Precious Metals" :
+                                     "Foreign Exchange"}
+                                </h2>
+                                <p className="section__subtitle reveal">
+                                    {group.key === "equity" ? "Valuation percentiles and CAPE ratios across major global indices." :
+                                     group.key === "china"  ? "Earnings yield, bond yield correlations, and ERP metrics." :
+                                     group.key === "metals" ? "Real interest rates and inflation-adjusted historical pricing models." :
+                                     "Purchasing Power Parity (PPP) deviations and carry trade models."}
+                                </p>
+
+                                <div className="asset-grid">
+                                    {groupAssets.map((asset, index) => {
+                                        const assetData = assets[asset.reportDir];
+                                        const signal = assetData?.signal || "N/A";
+                                        const score = assetData?.score || 0;
+                                        
+                                        // Determine sizing strategy based on group position
+                                        // First item in big groups gets hero sizing
+                                        let sizeClass = "";
+                                        if (groupAssets.length >= 3 && index === 0) {
+                                            sizeClass = "asset-card--hero";
+                                        } else if (groupAssets.length === 2) {
+                                            sizeClass = "asset-card--wide";
+                                        }
+
+                                        // Use the first chart specified in summary.json for this asset, fallback if missing
+                                        const latestChart = assetData?.charts?.[0];
+                                        const fallbackChart = `/api/chart/${latestDate || 'fallback'}/${asset.reportDir}/valuation_summary.png`;
+                                        const chartUrl = (latestDate && latestChart) 
+                                            ? `/api/chart/${latestDate}/${asset.reportDir}/${latestChart}` 
+                                            : fallbackChart;
+                                        // Helper functions inside map closure (or we can use the imported ones directly on detail page instead for consistency, but here we just need inline styling for the signal)
+                                        const getBadgeStyle = (s: string) => {
+                                            const sl = s.toLowerCase();
+                                            if (sl.includes("buy") || sl.includes("买入")) return { color: "var(--accent-green)", background: "rgba(48, 209, 88, 0.15)" };
+                                            if (sl.includes("sell") || sl.includes("卖出")) return { color: "var(--accent-red)", background: "rgba(255, 69, 58, 0.15)" };
+                                            if (sl.includes("neutral") || sl.includes("中性") || sl.includes("持有")) return { color: "var(--accent-orange)", background: "rgba(255, 159, 10, 0.15)" };
+                                            return { color: "var(--text-4)", background: "rgba(255, 255, 255, 0.08)" };
+                                        };
+
+                                        return (
+                                            <Link 
+                                                key={asset.slug} 
+                                                href={`/asset/${asset.slug}`}
+                                                className={`asset-card ${sizeClass}`}
+                                            >
+                                                {/* Ambient glow for hover effect */}
+                                                <div 
+                                                    className="asset-card__glow" 
+                                                    style={{
+                                                        background: `radial-gradient(120% 120% at 50% 0%, ${getBadgeStyle(signal).background.replace("0.15", "0.08")}, transparent)`
+                                                    }}
+                                                />
+                                                
+                                                <div className="asset-card__body">
+                                                    <div className="asset-card__header">
+                                                        <div className="asset-card__identity">
+                                                            <div className="asset-card__icon">
+                                                                <AssetIcon slug={asset.slug} />
+                                                            </div>
+                                                            <div>
+                                                                <h3 className="asset-card__name">{asset.name}</h3>
+                                                                <div className="asset-card__score">Score: <strong>{score >= 0 ? '+' : ''}{score}</strong></div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="signal-badge" style={getBadgeStyle(signal)}>
+                                                            {signal.replace(/[<>]/g, "").trim()}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="asset-card__chart-wrap">
+                                                        {latestDate && (
+                                                            // eslint-disable-next-line @next/next/no-img-element
+                                                            <img 
+                                                                src={chartUrl}
+                                                                alt={`${asset.name} Chart`}
+                                                                className="asset-card__chart"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="asset-card__footer">
+                                                    <div>
+                                                        <span className="status-dot" style={{ backgroundColor: getBadgeStyle(signal).color }} />
+                                                        {latestDate ? "Updated" : "Awaiting Data"}
+                                                    </div>
+                                                    <div className="asset-card__arrow">View Details →</div>
+                                                </div>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+                        );
+                    })}
+
+                    <footer className="footer reveal">
+                        <p>© {new Date().getFullYear()} Global Markets Monitor. Generated by <a href="https://akshare.akfamily.xyz/" target="_blank" rel="noopener noreferrer">AKShare</a> data.</p>
+                    </footer>
+                </div>
+            </main>
+        </>
+    );
 }

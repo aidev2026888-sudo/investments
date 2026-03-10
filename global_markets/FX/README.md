@@ -12,11 +12,65 @@ Five-dimensional currency valuation framework that generates actionable buy/sell
 | 4 | **Real Interest Rate Differential** | Catalyst — what releases the spring | BIS + FRED |
 | 5 | **Credit-to-GDP Gap** | Financial stability — clean balance sheet = resilience | BIS |
 
-### Credit-to-GDP Gap (5th Dimension)
+## Dimensions Details
 
-Measures how far total private-sector credit (% of GDP) deviates from its HP-filtered long-term trend. Adopted by the **Basel Committee** as the official guide for the countercyclical capital buffer.
+### 1. Real Effective Exchange Rate (REER) Z-Score
 
-| Gap Level | Assessment | FX Score | Meaning |
+| Zone | Z-Score | Score | Meaning |
+|------|---------|-------|---------|
+| Extremely Undervalued | < −2.0 | +3 | Compressing the spring deeply |
+| Undervalued | −2.0 to −1.0 | +2 | High potential energy |
+| Mildly Undervalued | −1.0 to −0.5 | +1 | Slight historical discount |
+| Fair Value | −0.5 to +0.5 | 0 | Mean reversion |
+| Mildly Overvalued | +0.5 to +1.0 | −1 | Slight premium |
+| Overvalued | +1.0 to +2.0 | −2 | Stretched valuation |
+| Extremely Overvalued | > +2.0 | −3 | Dangerously over-extended |
+
+**What it measures**: REER compares a currency's value against a weighted basket of trading partners, adjusted for inflation. The Z-Score measures how many standard deviations the current REER is from its long-term (25-year) historical mean. 
+**Interpretation**: Acts as our "structural valuation" or the "spring". Extreme deviations eventually revert.
+
+---
+
+### 2. Relative Price Level (PPP Proxy)
+
+**What it measures**: Derived by dividing REER by NEER (Nominal Effective Exchange Rate). This serves as a proxy for Purchasing Power Parity (PPP), telling us whether a country's price levels are fundamentally cheap or expensive relative to its peers.
+**Interpretation**: Used as an informational anchor (not scored separately) to provide context. If REER is cheap but RPL is highly expensive, the currency might simply be inflating away its nominal value.
+
+---
+
+### 3. Current Account (% GDP)
+
+| Zone | Balance (% GDP) | Score | Meaning |
+|------|-----------------|-------|---------|
+| Very Strong Surplus | ≥ +6.0% | +2 | Massive organic capital inflow |
+| Surplus | +2.0% to +6.0% | +1 | Healthy export/savings dynamic |
+| Balanced | −2.0% to +2.0% | 0 | Neutral capital flows |
+| Deficit | −4.0% to −2.0% | −1 | Reliant on external financing |
+| Large Deficit | < −4.0% | −2 | Highly vulnerable to capital flight |
+
+**What it measures**: The net trade balance plus net income from abroad, scaled to the size of the economy.
+**Interpretation**: Represents fundamental, organic currency demand. A country running a large deficit must constantly attract foreign capital to prevent its currency from depreciating. A surplus country is fundamentally strong.
+
+---
+
+### 4. Real Interest Rate Differential
+
+| Zone | Diff vs Base (pp) | Score | Meaning |
+|------|-------------------|-------|---------|
+| Strong Attraction | ≥ +2.0 pp | +2 | High real yield pulls capital strongly |
+| Moderate Attraction | +1.0 to +2.0 pp | +1 | Favorable yield advantage |
+| Neutral | −1.0 to +1.0 pp | 0 | Rates are effectively at parity |
+| Capital Outflow | −2.0 to −1.0 pp | −1 | Investors seeking better yields elsewhere |
+| Strong Outflow | < −2.0 pp | −2 | Deeply negative relative real yield |
+
+**What it measures**: Subtracts domestic inflation from the 10-year government bond yield to find the *real* return, then compares it to the base currency (usually USD).
+**Interpretation**: This is the **catalyst**. A currency can be fundamentally cheap (REER) for years, but the "spring" is only released when interest rate differentials shift in its favor, attracting hot money.
+
+---
+
+### 5. Credit-to-GDP Gap
+
+| Gap Level | Assessment | Score | Meaning |
 |-----------|-----------|----------|---------|
 | > +10pp | Credit Boom (Danger) | -2 | Currency at risk of crisis-driven collapse |
 | +2 to +10pp | Above Trend (Caution) | -1 | Overheating, watch closely |
@@ -24,85 +78,10 @@ Measures how far total private-sector credit (% of GDP) deviates from its HP-fil
 | -10 to -2pp | Below Trend (Healing) | +1 | Financial system recovering |
 | < -10pp | Deep Deleveraging | +2 | Clean balance sheets, room to expand |
 
-**Reliability:** The credit-to-GDP gap has strong empirical backing. BIS research (Drehmann & Tsatsaronis, 2014) found it is the **single best early-warning indicator** for banking crises, with a signal horizon of 1-5 years before crises materialize. It outperforms other indicators because:
-- HP-filtered trend removes cyclical noise
-- Basel III formally adopted it (not just academic)
-- Works across developed and emerging economies
-- Limitation: it's a **necessary but not sufficient** condition — a positive gap doesn't guarantee a crisis, but most crises were preceded by one
+**What it measures**: How far total private-sector credit (% of GDP) deviates from its HP-filtered long-term trend. Adopted by the **Basel Committee**.
+**Interpretation**: Financial stability. A large positive gap (credit boom) strongly predicts banking crises 1-5 years out, which inevitably crush the currency. A negative gap implies a clean balance sheet capable of supporting future growth.
 
-## Quick Start
 
-```bash
-# From the repo root
-python global_markets/FX/analyze.py
-```
-
-### FRED API Key (optional)
-
-Add your key to `.env` in the repo root for 10Y government bond yields:
-
-```
-FRED_API_KEY=your_key_here
-```
-
-Without it the system falls back to BIS central bank policy rates — still fully functional.
-
-## Data Sources
-
-| Source | Datasets | API |
-|--------|----------|-----|
-| **BIS** (primary) | REER, NEER, CPI, Policy Rates, Credit-to-GDP Gap | `stats.bis.org/api/v1` (SDMX REST, no key) |
-| **World Bank** | Current Account (% GDP) | `api.worldbank.org/v2` (REST, no key) |
-| **FRED** (optional) | 10Y Bond Yields | `fredapi` (requires `FRED_API_KEY`) |
-
-## Currency Coverage
-
-| Currency | BIS Code | WB Code | FRED 10Y Series | Notes |
-|----------|----------|---------|------------------|-------|
-| USD | US | US | GS10 | Base currency for rate differentials |
-| JPY | JP | JP | IRLTLT01JPM156N | |
-| CHF | CH | CH | IRLTLT01CHM156N | |
-| EUR | XM | EMU→DEU | IRLTLT01EZM156N | CA uses Germany as Eurozone proxy |
-| CNY | CN | CN | — | Uses BIS policy rate (no FRED) |
-| AUD | AU | AU | IRLTLT01AUM156N | |
-| SGD | SG | SG | — | MAS uses NEER policy, no rate data |
-| CAD | CA | CA | IRLTLT01CAM156N | |
-| GBP | GB | GB | IRLTLT01GBM156N | |
-
-## Output
-
-### Console Report
-
-Per-currency detail (REER z-score, percentile, relative price level, CA balance, real rate differential, credit gap) plus a compact summary table with composite signals.
-
-### Charts
-
-| File | Description |
-|------|-------------|
-| `{CCY}_valuation_dashboard.png` | 3×2 panel: REER, RPL, Current Account, Real Rate, Credit Gap, Credit Ratio vs Trend |
-| `fx_valuation_heatmap.png` | Overview heatmap across all currencies and 5 dimensions |
-| `FX_report_{date}.md` | Date-stamped markdown report with all metrics and signals |
-
-## Module Structure
-
-```
-FX/
-├── analyze.py          # Main entry point
-├── fx_config.py        # Currency profiles & framework settings
-├── fx_data_fetcher.py  # BIS / World Bank / FRED data retrieval
-├── fx_metrics.py       # Z-scores, RPL deviation, credit gap, composite signal
-├── fx_charting.py      # 3×2 dashboards & heatmap
-├── fx_reporter.py      # Console reporting
-└── __init__.py
-```
-
-## Configuration
-
-Edit `fx_config.py` to:
-
-- **Add/remove currencies** — define a `CurrencyProfile` with BIS, World Bank, and FRED codes
-- **Change lookback period** — default is 25 years
-- **Change base currency** — default is USD for rate differentials
 
 ## Signal Interpretation
 

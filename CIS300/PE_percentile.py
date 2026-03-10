@@ -10,6 +10,7 @@ from email.mime.image import MIMEImage
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import os
+import time
 
 import numpy as np
 
@@ -47,49 +48,58 @@ CAPE_DEVIATION_LOW = -15.0   # 偏离 < -15% 视为低估
 # 2. 核心功能函数
 # ==========================================
 
-def fetch_pe_data(index_name, years):
+def fetch_pe_data(index_name, years, max_retries=3):
     """获取真实市盈率(P/E)数据并截取对应的时间窗口.
     额外获取 CAPE_ROLLING_YEARS 年数据以保证滚动平均有完整覆盖.
     """
     print(f"正在获取 {index_name} 的真实市盈率估值数据...")
-    try:
-        # 使用 AkShare 最新的指数市盈率函数
-        df = ak.stock_index_pe_lg(symbol=index_name)
+    for attempt in range(max_retries):
+        try:
+            # 使用 AkShare 最新的指数市盈率函数
+            df = ak.stock_index_pe_lg(symbol=index_name)
 
-        # 格式化日期
-        df['trade_date'] = pd.to_datetime(df['日期'])
-        df = df.sort_values('trade_date')
+            # 格式化日期
+            df['trade_date'] = pd.to_datetime(df['日期'])
+            df = df.sort_values('trade_date')
 
-        # 我们使用 "滚动市盈率" (PE TTM) 作为最科学的估值指标
-        df['pe'] = pd.to_numeric(df['滚动市盈率'])
+            # 我们使用 "滚动市盈率" (PE TTM) 作为最科学的估值指标
+            df['pe'] = pd.to_numeric(df['滚动市盈率'])
 
-        # 先在全量数据上计算3年滚动平均PE (简化版CAPE)
-        df['pe_cape'] = df['pe'].rolling(window=CAPE_ROLLING_DAYS, min_periods=1).mean()
+            # 先在全量数据上计算3年滚动平均PE (简化版CAPE)
+            df['pe_cape'] = df['pe'].rolling(window=CAPE_ROLLING_DAYS, min_periods=1).mean()
 
-        # 再筛选过去 N 年的数据用于展示
-        start_date = df['trade_date'].max() - relativedelta(years=years)
-        df = df[df['trade_date'] >= start_date].copy()
+            # 再筛选过去 N 年的数据用于展示
+            start_date = df['trade_date'].max() - relativedelta(years=years)
+            df = df[df['trade_date'] >= start_date].copy()
 
-        return df
-    except Exception as e:
-        print(f"数据获取失败: {e}")
-        return None
+            return df
+        except Exception as e:
+            print(f"数据获取失败 (尝试 {attempt+1}/{max_retries}): {e}")
+            if attempt < max_retries - 1:
+                print("等待 10 秒后重试...")
+                time.sleep(10)
+            else:
+                return None
 
 
-def fetch_bond_yield_10y():
+def fetch_bond_yield_10y(max_retries=3):
     """获取中国10年期国债最新收益率 (%).
     返回收益率的小数形式, 例如 1.75% -> 0.0175
     """
     print("正在获取中国10年期国债收益率...")
-    try:
-        df = ak.bond_zh_us_rate()
-        df = df.dropna(subset=['中国国债收益率10年'])
-        latest_yield_pct = float(df['中国国债收益率10年'].iloc[-1])
-        print(f"最新10年期国债收益率: {latest_yield_pct:.4f}%")
-        return latest_yield_pct / 100.0  # 转为小数
-    except Exception as e:
-        print(f"国债收益率数据获取失败: {e}")
-        return None
+    for attempt in range(max_retries):
+        try:
+            df = ak.bond_zh_us_rate()
+            df = df.dropna(subset=['中国国债收益率10年'])
+            latest_yield_pct = float(df['中国国债收益率10年'].iloc[-1])
+            print(f"最新10年期国债收益率: {latest_yield_pct:.4f}%")
+            return latest_yield_pct / 100.0  # 转为小数
+        except Exception as e:
+            print(f"国债收益率数据获取失败 (尝试 {attempt+1}/{max_retries}): {e}")
+            if attempt < max_retries - 1:
+                time.sleep(10)
+            else:
+                return None
 
 
 def analyze_valuation(df):
@@ -268,6 +278,35 @@ def send_email_with_chart(subject, body, attachment_path):
     except Exception as e:
         print(f"❌ 邮件发送失败: {e}")
 
+def save_markdown_report(current_pe, percentile, signal_label, signal_score, signal_factors, extra_analysis):
+    """生成 Markdown 报告用于 Dashboard 展示"""
+    today = datetime.now().strftime("%Y-%m-%d")
+    report_name = f"CSI300_report_{today}.md"
+
+    # 清理信号标签，去表情
+    clean_signal_label = signal_label.split(" ", 1)[-1] if " " in signal_label else signal_label
+
+    with open(report_name, "w", encoding="utf-8") as f:
+        f.write(f"# CSI 300 (沪深300) Valuation Report\n\n")
+        f.write(f"## Composite Signal\n")
+        # 需要符合 run_all.py 的正则表达式
+        # **<< 强烈卖出 >>** — Score: -4
+        f.write(f"**<< {clean_signal_label} >>** — Score: {signal_score}\n\n")
+        
+        f.write(f"## Valuation Metrics\n")
+        f.write(f"- **Current PE TTM**: {current_pe:.2f}\n")
+        f.write(f"- **Historical Percentile**: {percentile:.2f}%\n")
+        
+        f.write(f"\n## Key Factors\n")
+        for factor in signal_factors:
+            f.write(f"- {factor}\n")
+            
+        f.write(f"\n## Detailed Analysis\n")
+        f.write(f"```\n{extra_analysis}\n```\n")
+        
+    print(f"  [REPORT] Saved: {report_name}")
+
+
 
 # ==========================================
 # 3. 主执行流
@@ -387,6 +426,8 @@ def main():
     else:
         print("\n当前估值处于正常区间，无需发送警报邮件。")
 
+    # 生成供看板引用的 Markdown 报告
+    save_markdown_report(current_pe, percentile, signal_label, signal_score, signal_factors, extra_analysis)
 
 if __name__ == "__main__":
     main()

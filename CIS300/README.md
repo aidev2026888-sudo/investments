@@ -14,7 +14,7 @@ Multi-factor valuation framework for the **CSI 300 Index** (沪深300), China's 
 | Expensive | 60th–80th | −1 | Above-average — reduce exposure |
 | Very Expensive | > 80th | −2 | Historical tops — high caution |
 
-**What it measures**: Where the current trailing PE-TTM sits within its 15-year distribution. Uses AkShare's `stock_index_pe_lg` API which sources data from the LiGe platform (理杏仁), the most widely-used valuation data provider for Chinese markets.
+**What it measures**: Where the current trailing PE-TTM sits within its 15-year distribution. Sources data from the LiGe platform (理杏仁), the most widely-used valuation data provider for Chinese markets.
 
 **Why 15 years**: The CSI 300 was launched in 2005. Using 15 years captures multiple full market cycles including the 2015 bubble/crash, 2018 trade war drawdown, and 2020–2021 recovery, giving robust percentile context.
 
@@ -51,7 +51,7 @@ Multi-factor valuation framework for the **CSI 300 Index** (沪深300), China's 
 
 **What it measures**: ERP = Earnings Yield (1/PE) − 10Y Government Bond Yield. Compares what equities "pay" in earnings to the risk-free rate offered by Chinese government bonds.
 
-**China-specific context**: China's 10-year government bond yield (sourced via AkShare's `bond_china_yield` API from ChinaBond) typically ranges 2.5%–4.0%. An ERP above 6% signals equities are extremely cheap relative to bonds — historically these entry points have delivered excellent 12-month forward returns.
+**China-specific context**: China's 10-year government bond yield (sourced from ChinaBond) typically ranges 2.5%–4.0%. An ERP above 6% signals equities are extremely cheap relative to bonds — historically these entry points have delivered excellent 12-month forward returns.
 
 **Limitation**: China's government bond market dynamics differ from developed markets. The PBoC's monetary policy transmission is less direct, and the bond yield may not fully reflect market-determined risk-free rates due to capital controls and state bank participation.
 
@@ -69,19 +69,9 @@ Multi-factor valuation framework for the **CSI 300 Index** (沪深300), China's 
 
 Factors: PE Percentile + CAPE Deviation + ERP
 
----
-
-## Data Sources
-
-| Data | Source | API |
-|------|--------|-----|
-| CSI 300 PE-TTM | LiGe (理杏仁) | `ak.stock_index_pe_lg()` |
-| CSI 300 Price | AkShare | `ak.stock_zh_index_daily()` |
-| China 10Y Bond Yield | ChinaBond | `ak.bond_china_yield()` |
-
 ## Limitations & Caveats
 
-- **Data quality**: Chinese financial data availability and consistency is generally lower than developed markets. PE data from AkShare/LiGe may have occasional gaps.
+- **Data quality**: Chinese financial data availability and consistency is generally lower than developed markets. Valuation data may have occasional gaps.
 - **Policy sensitivity**: A-share markets are heavily influenced by government policy (CSRC, PBoC, NDRC). Regulatory changes can override valuation signals.
 - **Capital controls**: The RMB is not fully convertible, which means foreign investors face additional constraints beyond what valuation signals suggest.
 - **Sector composition**: The CSI 300 is heavily weighted toward financials, consumer staples, and technology — different from many global indices.

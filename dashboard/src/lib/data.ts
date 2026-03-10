@@ -89,9 +89,10 @@ export function loadReadme(readmeDir: string): string | null {
  */
 function filterMethodology(content: string): string {
     const technicalHeadings = [
-        "quick start", "configuration", "dependencies", "installation",
+        "quick start", "config", "dependenc", "install",
         "setup", "output", "usage", "getting started", "how to run",
-        "running", "file structure", "project structure", "requirements",
+        "running", "structure", "requirement", "data source", "sources", 
+        "coverage", "api key", "report example", "architecture"
     ];
 
     const lines = content.split("\n");

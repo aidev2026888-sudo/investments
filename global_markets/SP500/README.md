@@ -2,15 +2,6 @@
 
 Multi-factor valuation framework for the **S&P 500 Index** using SPY ETF data.
 
-## Quick Start
-
-```bash
-cd global_markets/SP500
-../../venv/Scripts/python.exe analyze.py
-```
-
-**Output**: Console report + `Sand_P_500_pe_valuation.png` + `Sand_P_500_report_{date}.md`
-
 ## Metrics Monitored
 
 ### 1. PE Percentile (10-Year)
@@ -23,7 +14,7 @@ cd global_markets/SP500
 | Expensive | 60th–80th | −1 |
 | Very Expensive | > 80th | −2 |
 
-**What it measures**: Where the current trailing PE sits within its 10-year distribution. Uses SPY ETF's `trailingPE` from yfinance.
+**What it measures**: Where the current trailing PE sits within its 10-year distribution. Uses the trailing 12-month PE ratio.
 
 **Limitation**: PE based on trailing 12-month earnings. During earnings recessions, PE can spike mechanically (lower E → higher PE) creating false "expensive" signals. Forward PE is displayed when available but not scored.
 
@@ -57,8 +48,6 @@ cd global_markets/SP500
 | Expensive | < 0% | −1 |
 
 **What it measures**: ERP = Earnings Yield (1/PE) − 10Y Bond Yield. Compares equity returns to the risk-free rate. When ERP is high, equities are cheap relative to bonds; when negative, bonds are more attractive.
-
-**Data source**: PE from SPY, 10Y yield from yfinance `^TNX`
 
 **Limitation**: Assumes earnings yield ≈ expected equity returns, which is a simplification. Does not account for earnings growth expectations. Available only for S&P 500 (where `^TNX` bond yield is used).
 
@@ -94,17 +83,6 @@ cd global_markets/SP500
 
 Factors: PE Percentile + CAPE Deviation + ERP
 
-## Configuration
-
-| Parameter | Value |
-|-----------|-------|
-| Index Ticker | `^GSPC` |
-| ETF (PE data) | `SPY` |
-| Bond Yield | `^TNX` (US 10Y) |
-| Lookback | 10 years |
-| CAPE Window | 3 years |
-
----
 
 ### 4. VIX Fear Gauge (Contrarian Indicator)
 
@@ -120,12 +98,6 @@ Factors: PE Percentile + CAPE Deviation + ERP
 
 **Spike-Then-Retreat Signal**: When VIX surges rapidly (>50% in 20 trading days) and then drops back (>20% from peak), this signals fear has peaked and is subsiding. Historically avg +16% 12mo return, 85% win rate.
 
-**Configurable thresholds** (in `common/config.py`):
-- `VIX_SPIKE_SURGE_PCT = 50` (surge threshold %)
-- `VIX_SPIKE_RETREAT_PCT = 20` (retreat threshold %)
-- `VIX_SPIKE_MIN_PEAK = 25` (minimum peak to qualify)
-- `VIX_LOOKBACK_DAYS = 20` (rolling window in trading days)
-
 **Limitation**: VIX is informational only, **not scored in the composite signal**. High VIX doesn't guarantee a bottom -- markets can stay volatile for extended periods. The signal works best when combined with valuation metrics (PE, CAPE).
 
 **References**:
@@ -134,6 +106,3 @@ Factors: PE Percentile + CAPE Deviation + ERP
 - [UBS -- VIX levels and equity returns](https://www.ubs.com/global/en/wealth-management/insights/) -- VIX >40 yields avg +30% with 95% gain probability
 - [Whaley (2000) -- "The Investor Fear Gauge"](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=225153) -- Original academic paper establishing VIX as a fear measure
 
-## Dependencies
-
-`yfinance`, `pandas`, `numpy`, `scipy`, `matplotlib`

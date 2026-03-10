@@ -8,12 +8,16 @@
 
 ## Dashboard Preview
 
+![Apple Pro Dashboard Interface](apple_pro_dashboard_screenshot.png)
+
 | Feature | Description |
 |---------|-------------|
-| **Bento grid layout** | Hero, wide, tall, and normal cards with per-asset gradient accents |
-| **Live signals** | Buy / Sell / Hold with composite scores |
-| **Interactive charts** | Click-to-expand lightbox with Stripe-style bento expand icon |
-| **Run from UI** | ▶ Run Analysis button triggers individual asset analyzers |
+| **Cinematic Layout** | Apple Pro-style mobile-first layout with `100vh` sticky stacking sections |
+| **Dark Design System** | True black `#000000` backgrounds, glassmorphism, and gradient text accents |
+| **GSAP Animations** | Intersecting scroll-linked reveals, parallax charts, and glowing signal badges |
+| **Live signals** | Buy / Sell / Hold with structural valuation scores per asset |
+| **Interactive charts** | Click-to-expand cinematic lightbox overlay |
+| **Run from UI** | ▶ Run Analysis button triggers individual Python asset analyzers |
 | **Methodology** | In-app financial explanations (technical setup filtered out) |
 | **Signal history** | Track how signals change over time |
 

@@ -70,14 +70,14 @@ function updateSummary(rootDir: string, asset: string, destDir: string): void {
     const today = new Date().toISOString().split("T")[0];
     const summaryPath = path.join(rootDir, "reports", today, "summary.json");
 
-    let summary: Record<string, unknown> = { date: today, assets: {} };
+    let summary: Record<string, any> = { date: today, assets: {} };
     try {
         if (fs.existsSync(summaryPath)) {
             summary = JSON.parse(fs.readFileSync(summaryPath, "utf-8"));
         }
     } catch { /* start fresh */ }
 
-    const assets = (summary.assets || {}) as Record<string, unknown>;
+    const assets = (summary.assets || {}) as Record<string, any>;
 
     // Find reports and charts
     const mdFiles = fs.existsSync(destDir)
@@ -87,43 +87,43 @@ function updateSummary(rootDir: string, asset: string, destDir: string): void {
         ? fs.readdirSync(destDir).filter((f) => f.endsWith(".png"))
         : [];
 
-    if (mdFiles.length > 0) {
-        // Try to extract signal from report
-        let signal = "N/A";
-        let score = 0;
-        try {
-            const content = fs.readFileSync(path.join(destDir, mdFiles[0]), "utf-8");
-            // Match: ## Composite Signal\n**<<< STRONG SELL >>>** — Score: -4
-            const m = content.match(/## Composite Signal\s*\n\*\*(.+?)\*\*.*?Score:\s*([+-]?\d+)/);
-            if (m) {
-                signal = m[1].trim();
-                score = parseInt(m[2], 10);
-            } else {
-                // Chinese format: 综合信号
-                const m2 = content.match(/综合信号[：:]\s*(.+?)\s*[（(]评分[：:]\s*([+-]?\d+)/);
-                if (m2) {
-                    signal = m2[1].trim();
-                    score = parseInt(m2[2], 10);
+        if (mdFiles.length > 0) {
+            // Try to extract signal from report
+            let signal = "N/A";
+            let score = 0;
+            try {
+                const content = fs.readFileSync(path.join(destDir, mdFiles[0]), "utf-8");
+                // Match: ## Composite Signal\n**<<< STRONG SELL >>>** — Score: -4
+                const m = content.match(/## Composite Signal\s*\n\*\*(.+?)\*\*.*?Score:\s*([+-]?\d+)/);
+                if (m) {
+                    signal = m[1].trim();
+                    score = parseInt(m[2], 10);
+                } else {
+                    // Chinese format: 综合信号
+                    const m2 = content.match(/综合信号[：:]\s*(.+?)\s*[（(]评分[：:]\s*([+-]?\d+)/);
+                    if (m2) {
+                        signal = m2[1].trim();
+                        score = parseInt(m2[2], 10);
+                    }
                 }
-            }
-        } catch { /* ignore */ }
+            } catch { /* ignore */ }
 
-        assets[asset] = {
-            signal,
-            score,
-            status: "ok",
-            report_file: mdFiles[0],
-            charts: pngFiles,
-        };
-    } else if (pngFiles.length > 0) {
-        // Charts but no markdown report (like CIS300)
-        assets[asset] = {
-            signal: assets[asset] && (assets[asset] as Record<string, unknown>).signal || "N/A",
-            score: assets[asset] && (assets[asset] as Record<string, unknown>).score || 0,
-            status: "ok",
-            charts: pngFiles,
-        };
-    }
+            assets[asset] = {
+                signal,
+                score,
+                status: "ok",
+                report_file: mdFiles[0],
+                charts: pngFiles,
+            };
+        } else if (pngFiles.length > 0) {
+            // Charts but no markdown report fallback
+            assets[asset] = {
+                signal: assets[asset]?.signal || "N/A",
+                score: assets[asset]?.score || 0,
+                status: "ok",
+                charts: pngFiles,
+            };
+        }
 
     summary.assets = assets;
 

@@ -2,20 +2,6 @@
 
 Multi-factor valuation framework for **Gold** and **Silver**, combining macro signals, miner fundamentals, price history, and market structure into actionable composite signals.
 
-## Quick Start
-
-```bash
-# Requires Python 3.10+ with venv at repo root
-cd global_markets/PreciousMetals
-../../venv/Scripts/python.exe analyze.py
-
-# For full accuracy, set FRED API key in .env:
-#   FRED_API_KEY=your_key_here
-```
-
-**Output**: Console report + `Gold_valuation.png` + `Silver_valuation.png` + `Gold_report_{date}.md` + `Silver_report_{date}.md`
-
----
 
 ## Metrics Monitored
 
@@ -30,8 +16,6 @@ cd global_markets/PreciousMetals
 | BEARISH | > 2% | −2 | High opportunity cost → bearish for gold |
 
 **What it measures**: Gold has no yield. Its opportunity cost is the real (inflation-adjusted) interest rate. When real yields are negative, holding cash or bonds destroys purchasing power, making gold the superior asset.
-
-**Data source**: [FRED DFII10](https://fred.stlouisfed.org/series/DFII10) (primary) · yfinance `^TNX` minus breakeven estimate (fallback)
 
 **Limitation**: TIPS real yield reflects *market expectations*, not guaranteed real returns. During periods of financial repression, the TIPS rate itself can be distorted by central bank purchases.
 
@@ -53,8 +37,6 @@ cd global_markets/PreciousMetals
 
 **Tickers**: Gold — `NEM` (Newmont), `GOLD` (Barrick) · Silver — `AG` (First Majestic), `PAAS` (Pan American)
 
-**Data source**: yfinance `priceToBook`, `operatingMargins`
-
 **Limitation**: P/B is a lagging indicator (based on reported book value). Miners with write-downs or acquisition goodwill may have distorted book values. Operating margins provide a cross-check.
 
 **Reference**: [Howard Marks — "The Most Important Thing"](https://www.oaktreecapital.com/) (cyclical margin of safety) · [World Gold Council — Gold Mining Costs](https://www.gold.org/goldhub/data/gold-costs)
@@ -64,8 +46,6 @@ cd global_markets/PreciousMetals
 ### 3. Gold/GDX Ratio (Gold only)
 
 **What it measures**: The ratio of gold's spot price to the GDX (VanEck Gold Miners ETF) price. When this ratio is high, gold is outperforming miners — suggesting margin pressure or operational struggles. When low, miners are leveraging gold's rise effectively.
-
-**Data source**: yfinance `GC=F` / `GDX`
 
 **Limitation**: Purely directional. GDX includes a basket of miners with varying exposure to gold vs. other metals. Not scored in the composite signal — used as supplementary context.
 
@@ -80,8 +60,6 @@ cd global_markets/PreciousMetals
 | Historically Expensive | > 80th | −1 | Price in the upper quintile |
 
 **What it measures**: Where the current price sits within its 10-year distribution. Provides context for whether the price is high or low relative to its own history.
-
-**Data source**: yfinance `GC=F` (gold) / `SI=F` (silver), 10+ years of daily close prices
 
 **Limitation**: Precious metals can remain in "expensive" percentiles for extended periods during secular bull markets. A high percentile does not imply an imminent reversal. Additionally, reference percentile values (80th, 60th, 40th, 20th) are reported for context.
 
@@ -98,8 +76,6 @@ cd global_markets/PreciousMetals
 | EXTREME PREMIUM | < 50 | −2 | Silver overvalued, caution |
 
 **What it measures**: How many ounces of silver it takes to buy one ounce of gold. Historical average is ~60–70. GSR is the single most important silver-specific relative valuation indicator.
-
-**Data source**: Computed from `GC=F` / `SI=F` spot prices
 
 **Limitation**: The "correct" long-term average for GSR is debatable and has shifted over different eras. Industrial demand changes (e.g., solar panel growth) can structurally alter the ratio.
 
@@ -122,7 +98,7 @@ cd global_markets/PreciousMetals
 
 The **coverage ratio** = estimated inventory ÷ open interest. When inventory can cover only a small fraction of outstanding contracts, squeeze risk is elevated. The January 2026 precious metals crash was preceded by a coverage ratio of approximately 14%.
 
-**Data sources**: yfinance `SLV` (inventory proxy) · [CFTC Commitments of Traders](https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm) (open interest, updated weekly on Fridays)
+**Data sources**: Visible ETF inventory · [CFTC Commitments of Traders](https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm) (open interest)
 
 **Limitation**: SLV total assets is a rough proxy — it reflects one ETF, not total global inventory. CFTC data is weekly and lags by several days. The coverage ratio is **informational only** (not part of the composite scoring) because it is a short-term tactical indicator, not a valuation metric.
 
@@ -141,9 +117,9 @@ The **coverage ratio** = estimated inventory ÷ open interest. When inventory ca
 
 **What it measures**: The premium of the active silver futures contract on the Shanghai Futures Exchange (SHFE) or SGE Ag(T+D) over the London/COMEX spot price. Because China is a massive driver of industrial silver demand (especially for solar photovoltaics), a sustained, structural premium in Shanghai indicates tight local supply and robust industrial off-take that is front-running western financial markets.
 
-**Data sources**: Eastmoney (SHFE `ag2606`, SGE `Ag(T+D)`) / Sina Finance. USD/CNY rate from yfinance `CNY=X`.
+**Data sources**: Shanghai Futures Exchange (SHFE) / Shanghai Gold Exchange (SGE).
 
-**Limitation**: Real-time programmatic fetching of Chinese exchange data without a paid API key is highly susceptible to IP blocking and rate limiting. The script attempts to scrape the latest prices using rotating fallbacks; if blocked, the report treats this factor as 'Unavailable' without breaking the pipeline.
+**Limitation**: Chinese exchange data can be opaque or delayed compared to western financial reporting. Local physical premiums can occasionally detach from global spot prices during periods of extreme domestic speculation.
 
 **Reference**: [Bloomberg — China's Premium on Gold and Silver](https://www.bloomberg.com/news/articles/2024-05-24/silver-surges-in-china-as-retail-investors-dive-into-haven-asset)
 
@@ -163,7 +139,7 @@ The **coverage ratio** = estimated inventory ÷ open interest. When inventory ca
 
 Factors: Real Yield + Miner P/B + Price Percentile
 
-### Silver (4-Factor)
+### Silver (5-Factor)
 
 Same score → signal mapping as gold.
 
@@ -171,149 +147,3 @@ Factors: Real Yield + GSR + Miner P/B + Price Percentile + SHFE Premium
 
 > **Note**: The COMEX coverage ratio is deliberately excluded from composite scoring. It is a tactical/monitoring metric displayed in the report for situational awareness.
 
----
-
-## Output Files
-
-| File | Description |
-|------|-------------|
-| `Gold_valuation.png` | Price history with percentile bands + real yield overlay |
-| `Silver_valuation.png` | Price history with percentile bands + GSR overlay |
-
----
-
-## Report Example
-
-```
-============================================================
-  [GOLD]  Precious Metals (Gold)  --  Valuation Report
-============================================================
-  Gold Spot Price:      $5,163.10 /oz
-  Miner Avg P/B:        2.98  (ELEVATED)
-  Gold/GDX Ratio:       49.1
-  Price Percentile (10yr): 99.7%
-============================================================
-
-  [REAL YIELD] US 10-Year TIPS Real Yield Analysis:
-    Real Yield:     +1.76%
-    Zone:           HEADWIND
-    Interpretation: Real yield +1.76% -- moderate headwind for gold
-
-    Logic: Gold has no yield. Its opportunity cost = real interest rate.
-    [i] Real yield > 0%: positive real rates -> mild headwind for gold
-============================================================
-
-  [SAFETY MARGIN] Miner P/B -- Dynamic AISC Proxy:
-    [NEM] P/B=3.81, OpMargin=58.3%, BookValue=$31.11
-    [GOLD] P/B=2.15, OpMargin=0.4%, BookValue=$26.26
-    --------
-    Average: P/B=2.98  Zone: ELEVATED
-    Gold miners P/B=2.98, OpMargin=29.3% -- high profitability;
-    price well above AISC; limited safety margin
-
-    Logic: When miner P/B < 1.0, mines are valued below book value
-    -> gold price is near/below industry AISC -> maximum safety margin.
-    When P/B > 4.0, extreme profitability -> no safety margin.
-
-    Gold/GDX Ratio: 49.1
-    (High ratio = gold outperforming miners = margin pressure)
-============================================================
-
-  [PERCENTILE] 10-Year Price Distribution:
-     80th pctl = $2,105.38
-     60th pctl = $1,840.44
-     40th pctl = $1,598.46
-     20th pctl = $1,285.54
-  [!] Price is in the TOP 20% of 10-year range -- historically expensive
-============================================================
-
-  [SIGNAL] Composite Signal (Multi-Factor Model):
-    Signal:     << SELL >>  (Score: -3, Confidence: 3/4)
-    Factors:
-      - Real Yield +1.76% (High -- headwind)
-      - Miner P/B 2.98 (Limited Safety -- high profitability)
-      - Price Percentile 100% (Historically Expensive)
-============================================================
-
-============================================================
-  [SILVER]  Precious Metals (Silver)  --  Valuation Report
-============================================================
-  Silver Spot Price:    $83.79 /oz
-  Gold Spot Price:      $5,163.10 /oz
-  Gold/Silver Ratio:    61.6
-  Silver Miner P/B:     4.38  (NO SAFETY MARGIN)
-  Price Percentile (10yr): 99.2%
-============================================================
-
-  [GSR] Gold/Silver Ratio Analysis:
-    Current GSR:    61.6
-    Zone:           NORMAL
-    GSR 61.6 -- silver at fair value relative to gold
-
-    Logic: Historical GSR avg ~60-70. High GSR = silver cheap vs gold.
-    [i] GSR in normal range
-============================================================
-
-  [SAFETY MARGIN] Silver Miner P/B -- Dynamic AISC Proxy:
-    [AG] P/B=5.05, OpMargin=49.0%
-    [PAAS] P/B=3.71, OpMargin=34.9%
-    --------
-    Average: P/B=4.38  Zone: NO SAFETY MARGIN
-    Silver miners P/B=4.38, OpMargin=41.9% -- extreme profitability;
-    price far above AISC; no safety margin
-============================================================
-
-  [INVENTORY] COMEX / Visible Silver Inventory:
-    Source: SLV ETF (iShares Silver Trust)
-    Status: COVERAGE COMFORTABLE
-    SLV holds $51.5B in silver assets | Coverage ratio: 97.9%
-    (COMFORTABLE) — 614,379,728 oz inventory vs 627,270,000 oz
-    open interest
-
-    [SQUEEZE RISK] Coverage Ratio: 97.9%
-    [OK] Comfortable inventory coverage
-============================================================
-
-  [PERCENTILE] 10-Year Price Distribution:
-     80th pctl = $27.46
-     60th pctl = $23.37
-     40th pctl = $18.30
-     20th pctl = $16.52
-  [!] Price is in TOP 20% of 10-year range
-============================================================
-
-  [SIGNAL] Composite Signal (Multi-Factor Model):
-    Signal:     <<< STRONG SELL >>>  (Score: -4, Confidence: 4/5)
-    Factors:
-      - Real Yield +1.76% (High -- headwind)
-      - GSR 61.6 (Normal range)
-      - Miner P/B 4.38 (No Safety Margin)
-      - Price Percentile 99% (Historically Expensive)
-============================================================
-```
-
----
-
-## Architecture
-
-```
-PreciousMetals/
-├── analyze.py                # Entry point — orchestrates gold + silver analysis
-└── (outputs: Gold_valuation.png, Silver_valuation.png)
-
-common/
-├── gold_data_fetcher.py      # Data layer — yfinance, FRED, CFTC
-├── gold_metrics.py           # Signal computation — zones, scores, classifications
-├── gold_signals.py           # Composite signal — multi-factor scoring model
-├── gold_reporter.py          # Console report formatting
-└── gold_charting.py          # Chart generation (matplotlib)
-```
-
-## Dependencies
-
-- `yfinance` — price data, miner fundamentals, SLV ETF
-- `fredapi` — US 10Y TIPS real yield (requires free API key)
-- `matplotlib` — chart generation
-- `pandas` / `numpy` — data processing
-- `requests` — CFTC COT report download
-- `python-dotenv` — `.env` file loading

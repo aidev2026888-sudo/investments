@@ -123,8 +123,14 @@ def extract_signal_from_report(report_path: Path) -> dict:
                 r'\|\s*\*\*Signal\*\*\s*\|\s*\*\*(.+?)\*\*\s*\(Score:\s*([+-]?\d+)\)',
                 content
             )
+        if not signal_match:
+            # Fallback: Chinese translation from CSI300 summary JSON pattern
+            signal_match = re.search(
+                r'综合信号[：:]\s*(.+?)\s*[（(]评分[：:]\s*([+-]?\d+)',
+                content
+            )
         if signal_match:
-            result["signal"] = signal_match.group(1).strip()
+            result["signal"] = signal_match.group(1).replace('<', '').replace('>', '').strip()
             result["score"] = int(signal_match.group(2))
 
     except Exception:
